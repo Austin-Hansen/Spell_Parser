@@ -32,7 +32,7 @@ This works for Debian based systems only!
 
 
 
-~note we run the commands like this to save time, and is basically necessary because there is currently no upper guard on the program
+~note we run the commands like this to save time, upper guard is only loosely tested
 
 
 

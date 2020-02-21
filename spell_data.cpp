@@ -9,10 +9,13 @@
 
 using namespace std;
 
+//used with validating whether a spell is in the spell description list,
+//note that for some reason that some spell names use different encoding,
+//which is why this was required in the first place
 void to_upper(char& ch){
     ch=toupper(static_cast<unsigned char>(ch));
 }
-
+//prints vectors for checking
 void print_vector(std::vector<int> &v){
     int counter;
          while(counter<v.size()){
@@ -22,6 +25,8 @@ void print_vector(std::vector<int> &v){
 return;
 }
 
+//used for the description, it is split up into lines until encountering
+//a colon,which means that the line with the colon is garbage
 string concat_string_vector(const std::vector<string> &v){
         stringstream out;
         std::string concat;
@@ -37,14 +42,15 @@ concat=out.str();
 //cout<<concat;
    return concat;
 }
-
+//determines what is a number, used in this context to know if a line can be put
+//into the class attribute or level attribute
 bool isNumber(const std::string& s) 
 { 
     std::string::const_iterator it=s.begin();
    while(it != s.end() && std::isdigit(*it)) ++it;
    return !s.empty()&&it==s.end();
 }
-//returns second string token
+//returns second string token, quite possibly the most painful thing I have had to organize
 std:: string tokenize(std::string object,char del,int flag){
 char* token;
 std::vector<string> tokens;
@@ -54,13 +60,14 @@ int found;
 std::string colon;
 stringstream ss(object);
 stringstream out;
+//these apostrophes are an example of a conversion nightmare
 std::string a="'";
 std::string b="’";
 size_t pos;
 //cout<<object<<"line"<<endl;
 
 copy= const_cast<char*>(object.c_str());
-//flag 1 gets rid of colons
+//flag 1 gets rid of colons, used for everything but name and description
 //flag 2 handles paragraphs and sentences until encountering a colon
 //flag 3 handles lines that can't be sentences or do not need a period
 
@@ -232,7 +239,6 @@ void find(std::string name,Spell &spell){
      //cout<<"Did not find: "<<spell.name<<endl;
    }
    
-   //return; 
    flame.close();
 
     ofstream out("flame.txt");
@@ -247,9 +253,6 @@ void find(std::string name,Spell &spell){
     }
     send=concat_string_vector(vd);    
     spell.description=send;
-    //cout<<send<<endl;
-    //out<<send;
-
 
     //if (!out.good()||out.bad()||out.fail()) { std::cerr<<"Error writing to ..."<<std::endl; } else {  
     //     out <<send<<endl; 
@@ -261,7 +264,7 @@ void find(std::string name,Spell &spell){
     
 }
 
-
+//this is needed to ensure that every spell is unique, duplicate can be found in the class list
 int vector_contains(std::string search, std::vector<string> &v){
     int index;
 
@@ -299,22 +302,12 @@ void cleanfiles(std::string filename,std::string secondfile,std::vector<std::str
 	ifstream fuel(filename);
     int counter;
     //ofstream clean("butane.txt");
-    //cout<<"Fuck"<<endl;
-    
+
     while(getline(fuel,line)){
     	if(line!="end"){
         copy= const_cast<char*>(line.c_str());
 
-       /*token=strtok(copy,"\n\t\r()");
-        //names.push_back(token);
-        tokens.push_back(token);
-        while(token){
-        
-        tokens.push_back(token);
-        
-        token=strtok(NULL," \n\t\r()");
-        
-        }*/
+
 
         while((token=strtok_r(copy,"\r\n\t(),",&copy))){
         if(strcmp(token," ")>0){
@@ -450,6 +443,7 @@ std::string translate(Spell &spell){
 
 
 Spell::Spell(){ }
+//this is what spits out the workable file, it spits out HTML used in 5th edition Spell Book app
 void Spell::write_spell_file(std::vector<Spell> &spell_list){
 
      int counter;
@@ -459,7 +453,7 @@ void Spell::write_spell_file(std::vector<Spell> &spell_list){
      std::string ritual;
      std::string book;
      std::string output;
-     book="fuck you";
+     book="book";
      cout<<"enter the name of the book"<<endl;
      getline(cin,book);
      cout<<"enter output file name, format is: name.txt"<<endl;
@@ -524,6 +518,13 @@ std::vector<Spell> Spell::thresh(std::string filename,std::vector<std::string> &
         ofstream searched("search.txt");
 	if (file.is_open()) {
     std::string line;
+
+    while(getline(file,line)){
+      if(line=="Spell Lists"||line=="Spell List"){
+        break;
+      }
+    }
+
     while (getline(file, line)) {
 
         if(line=="Bard Spells")
@@ -639,7 +640,8 @@ std::vector<Spell> Spell::thresh(std::string filename,std::vector<std::string> &
 }
 
 
-//it already knows the main parsing file is butane and searched is the searched file
+//it already knows the main parsing file is butane and searched is the searched file for spell descriptions
+//does the heavy lifting, couldn't put its functionality in threshed
 void Spell::filldata(std::vector<std::string> &names){
 	std::string line;
     
@@ -658,12 +660,6 @@ void Spell::filldata(std::vector<std::string> &names){
     std::vector<int> ritual(size);
     std::vector<int> level(size);
     std::vector<int> concentration(size);
-
-    ofstream fuck("flame.txt");
-
-     for(int i;i<names.size();++i){
-        //fuck<<names.at(i)<<endl;
-    }
 
 
 	ifstream data("butane.txt");
@@ -725,7 +721,6 @@ void Spell::filldata(std::vector<std::string> &names){
             //cout<<"level "<<level[check]<<endl;
     }
 data.close();
-fuck.close();
 //cout<<names[0]<<endl;
 //cout<<names[40]<<endl;
 counter=0;
@@ -752,6 +747,7 @@ while(counter<classes2.size()){
 
 counter=0;
 i=0;
+//this is what makes the wall of text when ran, confirms that it at least put the parametrers into the object
 while(counter<names.size()){
       spell=spell_list.at(counter);
       cout<<spell.name<<endl;
